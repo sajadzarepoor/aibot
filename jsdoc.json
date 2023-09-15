@@ -1,0 +1,11 @@
+{
+  "plugins": ["plugins/markdown"],
+  "source": {
+    "includePattern": ".js$",
+    "excludePattern": "(node_modules/|jsdoc.json)"
+  },
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": true
+  }
+}
