@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>app/bot/middleware/textMW.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-index-Application.html">Application</a><ul class='methods'><li data-type='method'><a href="module-index-Application.html#configApp">configApp</a></li><li data-type='method'><a href="module-index-Application.html#setupMongo">setupMongo</a></li><li data-type='method'><a href="module-index-Application.html#setupServer">setupServer</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-SessionMiddleware.html">SessionMiddleware</a><ul class='methods'><li data-type='method'><a href="module-SessionMiddleware.html#~SessionMiddleware">SessionMiddleware</a></li></ul></li><li><a href="module-actionMW.html">actionMW</a><ul class='methods'><li data-type='method'><a href="module-actionMW.html#~actionMiddleware">actionMiddleware</a></li></ul></li><li><a href="module-botArticles.html">botArticles</a></li><li><a href="module-buttonManager.html">buttonManager</a><ul class='methods'><li data-type='method'><a href="module-buttonManager.html#~botArticlesButton">botArticlesButton</a></li><li data-type='method'><a href="module-buttonManager.html#~categoryBotton">categoryBotton</a></li><li data-type='method'><a href="module-buttonManager.html#~newsLinkButton">newsLinkButton</a></li><li data-type='method'><a href="module-buttonManager.html#~newsTypeBotton">newsTypeBotton</a></li></ul></li><li><a href="module-chatBot.html">chatBot</a><ul class='methods'><li data-type='method'><a href="module-chatBot.html#~chatBot">chatBot</a></li></ul></li><li><a href="module-index.html">index</a></li><li><a href="module-news.html">news</a><ul class='methods'><li data-type='method'><a href="module-news.html#~getNews">getNews</a></li></ul></li><li><a href="module-routes.html">routes</a><ul class='methods'><li data-type='method'><a href="module-routes.html#.GET/">GET /</a></li><li data-type='method'><a href="module-routes.html#.GET/addArticle">GET /addArticle</a></li><li data-type='method'><a href="module-routes.html#.GET/api/users">GET /api/users</a></li><li data-type='method'><a href="module-routes.html#.POST/api/articles">POST /api/articles</a></li></ul></li><li><a href="module-startBot.html">startBot</a><ul class='methods'><li data-type='method'><a href="module-startBot.html#~startBot">startBot</a></li></ul></li><li><a href="module-textMW.html">textMW</a><ul class='methods'><li data-type='method'><a href="module-textMW.html#~backButtonMiddleWare">backButtonMiddleWare</a></li><li data-type='method'><a href="module-textMW.html#~mainMenuMiddleWare">mainMenuMiddleWare</a></li></ul></li><li><a href="module-users.html">users</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">app/bot/middleware/textMW.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Middleware for handling user interactions related to the main menu.
+ * @module textMW
+ */
+
+// Import necessary modules and buttons.
+const { Telegraf, Markup, Scenes } = require("telegraf");
+const {
+  mainMenuButtonTexts,
+  backBotton,
+  mainMenuButton,
+  suggestionButtons,
+  newsLinkButton,
+  categoryBotton,
+  botArticlesButton,
+  roadMapBotton,
+} = require("../utils/buttonManager");
+const messages = require("../utils/messages");
+const chatBot = require("../../API/chatbot");
+const getNews = require("../../API/news");
+const UserDatabase = require("../../../model/users");
+const ArticlesDatabase = require("../../../model/botArticles");
+
+/**
+ * Middleware for handling main menu button selections.
+ * @param {object} ctx - The Telegraf context object.
+ * @param {function} next - The next middleware function.
+ */
+const mainMenuMiddleWare = (ctx, next) => {
+  if (!ctx.message) return next();
+  const text = ctx.message.text;
+  if (text &amp;&amp; Object.values(mainMenuButtonTexts).includes(text)) {
+    mainMenuFunctions[text](ctx);
+  }
+  next();
+};
+
+/**
+ * Middleware for handling the back button.
+ * @param {object} ctx - The Telegraf context object.
+ * @param {function} next - The next middleware function.
+ */
+const backButtonMiddleWare = (ctx, next) => {
+  if (!ctx.message) return next();
+  const text = ctx.message.text;
+  if (text &amp;&amp; text == "بازگشت 🔙") {
+    ctx.session.articleNumber = undefined;
+    ctx.session.newsNumber = undefined;
+    ctx.session.state = undefined;
+    ctx.reply(messages.choosYourNewOp, mainMenuButton);
+  }
+  next();
+};
+
+/**
+ * Define main menu actions and their functionalities.
+ * @type {Object}
+ */
+const mainMenuFunctions = {
+  /**
+   * Chatbot action.
+   * @param {object} ctx - The Telegraf context object.
+   */
+  [mainMenuButtonTexts.chat]: (ctx) => {
+    // Send a greeting message for the chatbot.
+    ctx.reply(messages.chatBotMessageGreeting, backBotton);
+    // Ask for user input and set the state to "chatbot".
+    ctx.reply(messages.chatBotMessageAsk, suggestionButtons);
+    ctx.session.state = STATE_LIST.CHATBOT;
+  },
+
+  /**
+   * News action.
+   * @param {object} ctx - The Telegraf context object.
+   */
+  [mainMenuButtonTexts.news]: async (ctx) => {
+    // Set the newsNumber session variable to 0.
+    ctx.session.newsNumber = 0;
+    // Get the user ID from the update.
+    userId = ctx.update.message.from.id;
+    // Find the user in the database.
+    let user = await UserDatabase.findOne({ id: userId });
+
+    if (user.config) {
+      // If the user is configured, fetch and display news articles.
+      await getNews(0, user, async ({ title, body, image, link }) => {
+        await ctx.replyWithPhoto(
+          { url: image },
+          {
+            caption: `🌐 ${title} \n〰️〰️〰️\n ${body}`,
+            ...newsLinkButton(link),
+          }
+        );
+      });
+      // Send a back button to return to the main menu.
+      ctx.reply("〰️〰️〰️", backBotton);
+    } else {
+      // If the user is not configured, prompt them to choose a category.
+      ctx.reply(messages.choosYourCat, categoryBotton(user));
+    }
+  },
+
+  /**
+   * Bot Articles action.
+   * @param {object} ctx - The Telegraf context object.
+   */
+  [mainMenuButtonTexts.articles]: async (ctx) => {
+    // Fetch all bot articles.
+    const article = await ArticlesDatabase.find({});
+    // Get the index of the last article.
+    lastArticleIndex = article.length - 1;
+    // Set the articleNumber session variable to the last article index.
+
+    ctx.session.articleNumber = lastArticleIndex;
+
+    // Send a back button to return to the main menu.
+    ctx.reply("〰️〰️〰️", backBotton);
+    // Display the last article with a photo and caption.
+    await ctx.replyWithPhoto(
+      {
+        url: "https://media.istockphoto.com/id/149303042/photo/futuristic-man.jpg?s=612x612&amp;w=0&amp;k=20&amp;c=9hB6qsugxOUPeoqmAhytBlwXKjR9gBWP0vw527wxD74=",
+      },
+      {
+        caption: `🌐 ${article[lastArticleIndex].title} \n〰️〰️〰️\n ${article[lastArticleIndex].caption}`,
+        ...botArticlesButton(),
+      }
+    );
+  },
+
+  /**
+   * Roadmap action.
+   * @param {object} ctx - The Telegraf context object.
+   */
+  [mainMenuButtonTexts.roadMap]: async (ctx) => {
+    // Send a back button to return to the main menu.
+    ctx.reply("〰️〰️〰️", backBotton);
+    // Display a message with roadmap options.
+    ctx.reply(messages.choosYourCat, roadMapBotton);
+  },
+};
+module.exports = {
+  mainMenuMiddleWare,
+  backButtonMiddleWare,
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Sun Sep 17 2023 12:23:38 GMT+0430 (Iran Daylight Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

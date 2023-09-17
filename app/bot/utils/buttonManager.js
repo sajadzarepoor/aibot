@@ -1,6 +1,11 @@
-const { Telegraf, Markup, Scenes } = require("telegraf");
+/**
+ * Button manager module to create and manage keyboard buttons.
+ * @module buttonManager
+ */
 
-// main menu buttos
+const { Telegraf, Markup } = require("telegraf");
+
+// Main menu buttons texts
 const mainMenuButtonTexts = {
   chat: "گفت‌وگو با چت‌بات 🤖",
   news: "اخبار و مقالات🌐",
@@ -10,6 +15,7 @@ const mainMenuButtonTexts = {
   setting: "تنظیمات ⚙️",
 };
 
+// News categories array
 const newsCategoriesArray = [
   "dmoz/Computers/Artificial_Intelligence",
   "dmoz/Computers/Computer_Science",
@@ -17,21 +23,22 @@ const newsCategoriesArray = [
   "dmoz/Science/Technology",
   "dmoz/Computers/Algorithms",
 ];
+
+// News types array
 const newsTypeArray = ["news", "blog"];
 
+// Main menu buttons keyboard markup
 const mainMenuButton = Markup.keyboard([
   [mainMenuButtonTexts.chat],
   [mainMenuButtonTexts.articles, mainMenuButtonTexts.news],
   [mainMenuButtonTexts.roadMap, mainMenuButtonTexts.tools],
   [mainMenuButtonTexts.setting],
 ]).resize();
-//
 
-// back button
+// Back button
 const backBotton = Markup.keyboard([["بازگشت 🔙"]]).resize();
-//
 
-// suggestion Buttons
+// Suggestion buttons
 const suggestionButtons = Markup.inlineKeyboard([
   [
     {
@@ -51,9 +58,12 @@ const suggestionButtons = Markup.inlineKeyboard([
     },
   ],
 ]);
-//
 
-// news link button and next prev
+/**
+ * Create news link button and navigation buttons.
+ * @param {string} link - The URL link to the full news article.
+ * @returns {Markup} - Inline keyboard markup.
+ */
 function newsLinkButton(link) {
   const inlineKeyboard = Markup.inlineKeyboard([
     [Markup.button.url("مطالعه متن کامل", link)],
@@ -68,8 +78,11 @@ function newsLinkButton(link) {
   return inlineKeyboard;
 }
 
-// category botton
-
+/**
+ * Create category buttons based on user preferences.
+ * @param {object} user - User object with category preferences.
+ * @returns {Markup} - Inline keyboard markup.
+ */
 function categoryBotton(user) {
   const exitsCatArray = checkExist(user);
 
@@ -111,6 +124,11 @@ function categoryBotton(user) {
   }
 }
 
+/**
+ * Create news type buttons based on user preferences.
+ * @param {object} user - User object with news type preferences.
+ * @returns {Markup} - Inline keyboard markup.
+ */
 function newsTypeBotton(user) {
   const exitsTypeArray = checkExist(user);
   return Markup.inlineKeyboard([
@@ -142,7 +160,10 @@ function newsTypeBotton(user) {
   }
 }
 
-// bot Artilces botton
+/**
+ * Create bot articles navigation buttons.
+ * @returns {Markup} - Inline keyboard markup.
+ */
 function botArticlesButton() {
   const inlineKeyboard = Markup.inlineKeyboard([
     [
@@ -155,7 +176,8 @@ function botArticlesButton() {
   ]);
   return inlineKeyboard;
 }
-// roadmap inline bottons
+
+// Roadmap inline buttons
 const roadMapBotton = Markup.inlineKeyboard([
   [
     {
@@ -172,6 +194,8 @@ const roadMapBotton = Markup.inlineKeyboard([
     { text: "یادگیری عمیق", callback_data: "ROAD_DL" },
   ],
 ]);
+
+// Export all button-related functions and objects.
 module.exports = {
   mainMenuButton,
   mainMenuButtonTexts,

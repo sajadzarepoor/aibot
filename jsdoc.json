@@ -1,11 +1,25 @@
 {
-  "plugins": ["plugins/markdown"],
   "source": {
-    "includePattern": ".js$",
-    "excludePattern": "(node_modules/|jsdoc.json)"
+    "include": [
+      "./app/api/chatbot.js",
+      "./app/api/news.js",
+      "./app/bot/middleware/actionMW.js",
+      "./app/bot/middleware/SessionMW.js",
+      "./app/bot/middleware/textMW.js",
+      "./app/bot/utils/buttonManager.js",
+      "./app/bot/utils/messages.js",
+      "./app/bot/utils/saveUserToDatabase.js",
+      "./app/bot/startBot.js",
+      "./model/botArticles.js",
+      "./model/users.js",
+      "./routes/routes.js",
+      "./index.js"
+    ],
+    "exclude": ["node_modules"]
   },
-  "templates": {
-    "cleverLinks": true,
-    "monospaceLinks": true
+  "opts": {
+    "destination": "./docs/",
+    "recurse": true,
+    "template": "./node_modules/docdash"
   }
 }

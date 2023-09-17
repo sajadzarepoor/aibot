@@ -1,16 +1,24 @@
-// const messages = require("../utils/messages");
+/**
+ * Middleware for handling various actions in telegram bot.
+ * @module actionMW
+ */
+// Import required modules and dependencies.
 const chatBot = require("../../API/chatbot");
 const getNews = require("../../API/news");
 const {
   newsLinkButton,
-  categoryBotton,
-  newsTypeBotton,
+  categoryButton,
+  newsTypeButton,
   botArticlesButton,
 } = require("../utils/buttonManager");
 const UserDatabase = require("../../../model/users");
 const ArticlesDatabase = require("../../../model/botArticles");
 const messages = require("../utils/messages");
-// defing all action in object
+
+/**
+ * Object that maps action names to their corresponding regular expressions.
+ * @const {Object}
+ */
 const actionMap = {
   SUG: /^SUG_/,
   NEWS: /^NEWS_\w+/,
@@ -19,9 +27,12 @@ const actionMap = {
   ARTICLE: /^ARTICLE_/,
   ROAD: /^ROAD_/,
 };
-//
 
-// middleware for actions
+/**
+ * Middleware for handling various actions.
+ * @param {Object} ctx - The Telegraf context object.
+ * @param {Function} next - The next function to continue the middleware chain.
+ */
 const actionMiddleware = (ctx, next) => {
   if (!ctx.update.callback_query) return next();
   const dataAction = ctx.update.callback_query.data;
@@ -30,19 +41,22 @@ const actionMiddleware = (ctx, next) => {
     const actionValues = Object.values(actionMap);
 
     for (let i = 0; i < actionValues.length; i++) {
-      const isDataActoinExtist = dataAction.match(actionValues[i]);
+      const isDataActionExist = dataAction.match(actionValues[i]);
 
-      if (isDataActoinExtist) {
-        actoinFunctions[Object.keys(actionMap)[i]](ctx, dataAction);
+      if (isDataActionExist) {
+        actionFunctions[Object.keys(actionMap)[i]](ctx, dataAction);
       }
     }
   }
   next();
 };
 
-// defin actions functionality
-const actoinFunctions = {
-  // suggestion action
+/**
+ * Object containing functions for different actions.
+ * @const {Object}
+ */
+const actionFunctions = {
+  // Suggestion action
   SUG: async (ctx, dataAction) => {
     const text = dataAction.split("_")[1];
 
@@ -60,9 +74,8 @@ const actoinFunctions = {
       }
     });
   },
-  //
 
-  // next and previous for news
+  // Next and previous for news
   NEWS: async (ctx, dataAction) => {
     const userId = ctx.update.callback_query.from.id;
     let user = await UserDatabase.findOne({ id: userId });
@@ -111,9 +124,8 @@ const actoinFunctions = {
       );
     }
   },
-  //
 
-  // NEWS catrogory config
+  // NEWS category config
   CAT: async (ctx, dataAction) => {
     let text = dataAction.split("_");
     const userId = ctx.update.callback_query.from.id;
@@ -122,17 +134,15 @@ const actoinFunctions = {
     if (text.length > 1) {
       text = text.slice(1).join("_");
     }
-    // next botton
+    // Next button
     if (text == "NEXT") {
       ctx.editMessageText(
         "چه مطالبی را دوست دارید دریافت کنید ؟",
-        newsTypeBotton(user)
+        newsTypeButton(user)
       );
       return;
     }
-    // get user from db
-
-    // add category to db
+    // Add category to database
     if (!user.cat.includes(text)) {
       user.cat.push(text);
       //
@@ -140,7 +150,7 @@ const actoinFunctions = {
         ctx.update.callback_query.message.chat.id,
         ctx.update.callback_query.message.message_id,
         undefined,
-        categoryBotton(user).reply_markup
+        categoryButton(user).reply_markup
       );
       //
     } else {
@@ -150,14 +160,14 @@ const actoinFunctions = {
         ctx.update.callback_query.message.chat.id,
         ctx.update.callback_query.message.message_id,
         undefined,
-        categoryBotton(user).reply_markup
+        categoryButton(user).reply_markup
       );
       //
     }
     await user.save();
   },
-  //
-  //NEWS type config
+
+  // NEWS type config
   TYPE: async (ctx, dataAction) => {
     let text = await dataAction.split("_")[1];
     const userId = ctx.update.callback_query.from.id;
@@ -166,11 +176,11 @@ const actoinFunctions = {
     if (text == "submit") {
       await UserDatabase.updateOne({ id: userId }, { $set: { config: true } });
       return ctx.editMessageText(
-        "تنظیمات شما با موفقیت ثبت شد ✅\nلطفا مجدد روی دکمه اخبار کلیک کنید"
+        "تنظیمات شما با موفقیت ثبت شد ✅\nلطفاً مجدداً روی دکمه اخبار کلیک کنید"
       );
     }
 
-    // add type to db
+    // Add type to database
     if (!user.type.includes(text)) {
       user.type.push(text);
 
@@ -178,7 +188,7 @@ const actoinFunctions = {
         ctx.update.callback_query.message.chat.id,
         ctx.update.callback_query.message.message_id,
         undefined,
-        newsTypeBotton(user).reply_markup
+        newsTypeButton(user).reply_markup
       );
     } else {
       user.type = user.type.filter((item) => item != text);
@@ -187,13 +197,13 @@ const actoinFunctions = {
         ctx.update.callback_query.message.chat.id,
         ctx.update.callback_query.message.message_id,
         undefined,
-        newsTypeBotton(user).reply_markup
+        newsTypeButton(user).reply_markup
       );
     }
     await user.save();
   },
 
-  // next and previous for articles
+  // Next and previous for articles
   ARTICLE: async (ctx, dataAction) => {
     const text = dataAction.split("_")[1];
 
@@ -234,8 +244,8 @@ const actoinFunctions = {
       }
     }
   },
-  //
-  // roadmap bottons
+
+  // Roadmap buttons
   ROAD: async (ctx, dataAction) => {
     let text = await dataAction.split("_")[1];
     switch (text) {
@@ -268,7 +278,5 @@ const actoinFunctions = {
     }
   },
 };
-//
-//
 
 module.exports = actionMiddleware;
